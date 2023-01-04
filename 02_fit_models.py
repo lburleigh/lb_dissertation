@@ -1,6 +1,6 @@
 import pandas as pd
 from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set
-from lb_dissertation.modeling import cv_coirls, Config
+from lb_dissertation.modeling import cv_coirls, cv_ridgels, Config
 
 
 phase = "B"
@@ -24,4 +24,7 @@ for var in ["trial_types", "stimulus_cond", "runs", "voxels"]:
 
 cfg = Config(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs")
 r = cv_coirls(d, cfg)
+print(r)
+#
+r = cv_ridgels(d, cfg)
 print(r)
