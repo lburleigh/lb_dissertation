@@ -14,7 +14,7 @@ d = load_npz_as_df(subjects, roi, phase, experiment)
 
 # Filter arrays within each row
 for var in ["trial_types", "stimulus_cond", "runs", "voxels"]:
-    d[f"{var:s}_subset"] = d.apply(
+    d[f"{var:s}_tmp"] = d.apply(
         filter_matrix_by_set,
         var = var,
         by = "stimulus_cond",
@@ -22,9 +22,32 @@ for var in ["trial_types", "stimulus_cond", "runs", "voxels"]:
         axis = 1
     )
 
-cfg = Config(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs")
-r = cv_coirls(d, cfg)
-print(r)
-#
-r = cv_ridgels(d, cfg)
-print(r)
+for var in ["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"]:
+    lab = var.replace("_tmp", "")
+    d[f"{lab:s}_subset"] = d.apply(
+        filter_matrix_by_set,
+        var = var,
+        by = "trial_types_tmp",
+        set = ("image", "view"),
+        axis = 1
+    )
+
+d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], axis = 1)
+
+cfg = Config(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
+r = []
+r.append(cv_ridgels(d, True, cfg))
+r[0].loc[:, "model_type"] = "ridgels"
+r[0].loc[:, "cfg"] = [cfg]*r[0].shape[0]
+
+r.append(cv_coirls(d, False, cfg))
+r[1].loc[:, "model_type"] = "coirls"
+r[1].loc[:, "cfg"] = [cfg]*r[1].shape[0]
+
+r.append(cv_ridgels(d, False, cfg))
+r[2].loc[:, "model_type"] = "ridgels"
+r[2].loc[:, "cfg"] = [cfg]*r[2].shape[0]
+
+R = pd.concat(r)
+
+print(R)
