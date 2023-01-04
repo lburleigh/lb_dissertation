@@ -1,0 +1,14 @@
+{
+    "Name": "REQUIRED",
+    "BIDSVersion": "REQUIRED",
+    "DatesetType": "derivative",
+    "License": "RECOMMENDED",
+    "Authors": ["Lauryn Burleigh", "Steven Greening"],
+    "Acknowledgements": "OPTIONAL",
+    "HowToAcknowledge": "OPTIONAL",
+    "Funding": "OPTIONAL",
+    "EthicsApprovals": "OPTIONAL",
+    "ReferencesAndLinks": "OPTIONAL",
+    "GeneratedBy": "RECOMMENDED",
+    "SourceDatasets": "RECOMMENDED"
+}

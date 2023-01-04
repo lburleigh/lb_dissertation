@@ -1,36 +1,47 @@
+import os
 import numpy as np
+import pandas as pd
+from mvpa2.datasets.mri import fmri_dataset
+from mvpa2.misc.io.base import SampleAttributes
 import nibabel as nib
-from mvpa2.suite import *
-import glob
+from collections import namedtuple
+from tqdm import tqdm
 
-# Import FCTM data
-# filelist = glob.glob("MVPAfiles/17271/*hab-epiMNI.nii.gz")
+OUTPUT_DIR = os.path.join("data", "derivatives", "00_roi_extraction")
+# Output will be organized by mask and subject under this root directory
 
-domainadaptdir = '/data/shared/TranLearn/fMRI-Domain-Adaptation'
-basedir = '/data/shared/TranLearn/fMRI-Domain-Adaptation/MVPAfiles'
-phase = 'A'
-experiment = 'hab'
-maskname = 'mask-amyg_bi_thr50.nii.gz'
-subdirs=sorted(glob.glob("%s/1[0-9][0-9][0-9][0-9]"%(basedir)))
+Condition = namedtuple("Condition", ["phase", "exp", "mask", "subj"])
 
-for subdir in subdirs:
- #   img_file = filename
-	sub=subdir.split('/')[-1][:]
-    
-	## Load the sample attributes
-	attrfiles=glob.glob("%s/%s-%s%s-attr.txt"%(subdir,sub,phase,experiment))[0]
-	attr = SampleAttributes(attrfiles,header=['targets','chunks','trial', 'target_extra'])
+subj_df = pd.read_csv("participants.tsv", sep='\t')
+phases = ["A", "B"]
+experiments = ["hab", "task"]
+masknames = ["amyg_bi_thr50"]
+Conditions = [Condition(p, e, m, s)
+              for p in phases
+              for e in experiments
+              for m in masknames
+              for s in subj_df["participant_id"]]
 
-    ## Find Epi and Mask files
-	MNIdata = glob.glob("%s/%s-%s%s-epiMNI.nii.gz"%(subdir,sub,phase,experiment))[0]
-	mask = basedir + "/" + maskname
-	
-    ## Create a dataeset takes the 4D dataset and transforms it into 2D,
-	datset = fmri_dataset(MNIdata,targets=attr.targets,chunks=attr.chunks,mask=mask)
 
-	## Add the additional attribute of volume
-	datset.sa['trial']=attr.trial
-	datset.sa['target_extra']=attr.target_extra
+for c in tqdm(Conditions):
+	attrfile = f"{c.subj:}_phase-{c.phase:}_exp-{c.exp:}_attr.txt"
+	attrpath = os.path.join("data", "raw", "pymvpa", f"{c.subj:}", attrfile)
+	attr = SampleAttributes(attrpath, header=["targets", "chunks", "trial", "target_extra"])
 
-    ## Save file to npz
-	datset.to_npz("%s/datafiles/%s/%s-%s%s.npz"%(domainadaptdir,sub,sub,phase,experiment))
+	maskfile = f"mask-{c.mask:s}.nii.gz"
+	maskpath = os.path.join("data", "raw", "roi", maskfile)
+
+	epifile = f"{c.subj:}_phase-{c.phase:}_exp-{c.exp:}_epiMNI.nii.gz"
+	epipath = os.path.join("data", "raw", "pymvpa", f"{c.subj:}", epifile)
+	dataset = fmri_dataset(epipath, targets=attr.targets, chunks=attr.chunks, mask=maskpath)
+
+	dataset.sa["trial"] = attr.trial
+	dataset.sa["target_extra"] = attr.target_extra
+
+	outdir = os.path.join(OUTPUT_DIR, f"roi-{c.mask:}", f"{c.subj:}")
+	if not os.path.isdir(outdir):
+		os.makedirs(outdir)
+
+	outfile = f"{c.subj:}_phase-{c.phase:}_exp-{c.exp:}_roi-{c.mask:}.npz"
+	dataset.to_npz(os.path.join(outdir, outfile))
+

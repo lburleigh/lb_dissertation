@@ -1,0 +1,5 @@
+1.0.1 2022-12-15
+    - Renamed files to be more BIDS conformant
+    - Initialized participants.tsv, README, CHANGES, dataset_description
+1.0.0 Unknown
+    - Initial release
