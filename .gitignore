@@ -3,3 +3,4 @@ venv/
 test-pykale/
 trash/
 lb_dissertation/__pycache__/
+results/
