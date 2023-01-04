@@ -1,4 +1,5 @@
 import pandas as pd
+import os.path
 from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, Config
 
@@ -7,6 +8,7 @@ phase = "B"
 experiment = "task"
 roi = "amyg_bi_thr50"
 target_levels = ("csp", "csm") 
+targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
 subjects = subj_df["participant_id"]
 
@@ -49,5 +51,10 @@ r[2].loc[:, "model_type"] = "ridgels"
 r[2].loc[:, "cfg"] = [cfg]*r[2].shape[0]
 
 R = pd.concat(r)
-
+R.drop(["model", "cfg"], axis=1).to_csv(
+    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}.csv")
+)
+R.to_pickle(
+    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}.pkl")
+)
 print(R)
