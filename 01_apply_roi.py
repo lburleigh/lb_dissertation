@@ -15,7 +15,7 @@ Condition = namedtuple("Condition", ["phase", "exp", "mask", "subj"])
 subj_df = pd.read_csv("participants.tsv", sep='\t')
 phases = ["A", "B"]
 experiments = ["hab", "task"]
-masknames = ["amyg_bi_thr50"]
+masknames = ["whole_bin"]
 Conditions = [Condition(p, e, m, s)
               for p in phases
               for e in experiments
