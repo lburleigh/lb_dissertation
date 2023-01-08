@@ -4,7 +4,7 @@ library(readr)
 library(tidyr)
 library(ggplot2)
 
-d <- read_csv("phase-B_exp-task_roi-amyg_bi_thr50_dv-csp_csm.csv")
+d <- read_csv("phase-B_exp-task_roi-whole_bin_dv-csp_csm.csv")
 
 d_subj <- d %>%
   group_by(target_subject, single, model_type) %>%
