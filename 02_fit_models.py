@@ -6,7 +6,7 @@ from lb_dissertation.modeling import cv_coirls, cv_ridgels, Config
 
 phase = "B"
 experiment = "task"
-roi = "amyg_bi_thr50"
+roi = "whole_bin"
 target_levels = ("csp", "csm") 
 targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
