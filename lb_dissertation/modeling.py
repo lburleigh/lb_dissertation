@@ -9,7 +9,7 @@ from kale.pipeline.multi_domain_adapter import CoIRLS
 
 Config = namedtuple("Config", ["target_field", "target_levels", "data_field", "runs_field"])
 Data = namedtuple("Data", ["X", "y", "C", "cv", "source", "target_subject"])
-Result = namedtuple("Result", ["target_subject", "cv_index", "single", "acc_test", "acc_train", "loss_test", "loss_train", "model"])
+Result = namedtuple("Result", ["target_subject", "cv_index", "single", "acc_test", "acc_train", "loss_test", "loss_train", "model_params", "model_weights"])
 
 
 def cv_modelfit(fun: Callable[[Data, int], Result], d: pd.DataFrame, single: bool, cfg: Config) -> pd.DataFrame:
@@ -76,7 +76,8 @@ def run_coirls(data: Data, cv_index: int, single: bool) -> Result:
         accuracy_score(y_train, y_train_pred),
         log_loss(y_test, y_test_pred),
         log_loss(y_train, y_train_pred),
-        clf_.get_params()
+        clf_.get_params(),
+        clf_.coef_.numpy()
     )
 
 
@@ -100,5 +101,6 @@ def run_ridgels(data: Data, cv_index: int, single: bool) -> Result:
         accuracy_score(y_train, y_train_pred),
         log_loss(y_test, y_test_pred),
         log_loss(y_train, y_train_pred),
-        clf_.get_params()
+        clf_.get_params(),
+        clf_.coef_.numpy()
     )

@@ -51,7 +51,7 @@ r[2].loc[:, "model_type"] = "ridgels"
 r[2].loc[:, "cfg"] = [cfg]*r[2].shape[0]
 
 R = pd.concat(r)
-R.drop(["model", "cfg"], axis=1).to_csv(
+R.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
     os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}.csv")
 )
 R.to_pickle(
