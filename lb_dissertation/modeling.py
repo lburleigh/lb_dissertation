@@ -76,7 +76,7 @@ def run_coirls(data: Data, cv_index: int, single: bool) -> Result:
         accuracy_score(y_train, y_train_pred),
         log_loss(y_test, y_test_pred),
         log_loss(y_train, y_train_pred),
-        clf_.get_params()
+        clf_.coef_.numpy()
     )
 
 
@@ -100,5 +100,5 @@ def run_ridgels(data: Data, cv_index: int, single: bool) -> Result:
         accuracy_score(y_train, y_train_pred),
         log_loss(y_test, y_test_pred),
         log_loss(y_train, y_train_pred),
-        clf_.get_params()
+        clf_.coef_.numpy()
     )
