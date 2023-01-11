@@ -7,12 +7,13 @@ from sklearn.metrics import accuracy_score, log_loss
 from kale.pipeline.multi_domain_adapter import CoIRLS
 
 
-Config = namedtuple("Config", ["target_field", "target_levels", "data_field", "runs_field"])
+DataCfg = namedtuple("DataCfg", ["target_field", "target_levels", "data_field", "runs_field"])
 Data = namedtuple("Data", ["X", "y", "C", "cv", "source", "target_subject"])
-Result = namedtuple("Result", ["target_subject", "cv_index", "single", "acc_test", "acc_train", "loss_test", "loss_train", "model"])
+HyperCfg = namedtuple("HyperCfg", ["alpha", "lambda_"])
+Result = namedtuple("Result", ["target_subject", "cv_index", "single", "acc_test", "acc_train", "loss_test", "loss_train", "model_params", "model_weights"])
 
 
-def cv_modelfit(fun: Callable[[Data, int], Result], d: pd.DataFrame, single: bool, cfg: Config) -> pd.DataFrame:
+def cv_modelfit(fun: Callable[[Data, int], Result], d: pd.DataFrame, single: bool, cfg: DataCfg, hyp: HyperCfg) -> pd.DataFrame:
     results = []
     for target_subject_index in trange(d.shape[0], desc="subject"):
         if single:
@@ -21,20 +22,20 @@ def cv_modelfit(fun: Callable[[Data, int], Result], d: pd.DataFrame, single: boo
             data = pull_from_dataframe(d, target_subject_index, cfg)
 
         for cv_index in trange(np.max(data.cv), desc="cv", leave=False):
-            results.append(fun(data, cv_index, single))
+            results.append(fun(data, cv_index, single, hyp))
 
     return pd.DataFrame(results)
 
 
-def cv_coirls(d: pd.DataFrame, single: bool, cfg: Config) -> pd.DataFrame:
-    return cv_modelfit(run_coirls, d, single, cfg)
+def cv_coirls(d: pd.DataFrame, single: bool, cfg: DataCfg, hyp: HyperCfg) -> pd.DataFrame:
+    return cv_modelfit(run_coirls, d, single, cfg, hyp)
     
 
-def cv_ridgels(d: pd.DataFrame, single: bool, cfg: Config) -> pd.DataFrame:
-    return cv_modelfit(run_ridgels, d, single, cfg)
+def cv_ridgels(d: pd.DataFrame, single: bool, cfg: DataCfg, hyp: HyperCfg) -> pd.DataFrame:
+    return cv_modelfit(run_ridgels, d, single, cfg, hyp)
     
 
-def pull_from_dataframe(d: pd.DataFrame, target_subject_index: int, cfg: Config) -> Data:
+def pull_from_dataframe(d: pd.DataFrame, target_subject_index: int, cfg: DataCfg) -> Data:
     y_str = np.concatenate(d[cfg.target_field].values, axis = 0)
     y = (y_str == cfg.target_levels[1]).astype(int)
     cv = np.concatenate(d[cfg.runs_field].values, axis = 0).flatten()
@@ -57,15 +58,16 @@ def pull_from_dataframe(d: pd.DataFrame, target_subject_index: int, cfg: Config)
     return Data(X, y, C, cv, z_source, target_subject)
 
 
-def run_coirls(data: Data, cv_index: int, single: bool) -> Result:
-    clf_ = CoIRLS()
+def run_coirls(data: Data, cv_index: int, single: bool, hyp: HyperCfg) -> Result:
+    clf_ = CoIRLS(alpha=hyp.alpha, lambda_=hyp.lambda_)
     z_train = data.source | (data.cv != cv_index)
     X_test = data.X[~z_train, :]
     X_train = data.X[z_train, :]
     y_test = data.y[~z_train]
     y_train = data.y[z_train]
+    X = np.concatenate([X_train, X_test], axis=0)
 
-    clf_.fit(data.X, y_train, data.C)
+    clf_.fit(X, y_train, data.C)
     y_train_pred = clf_.predict(X_train)
     y_test_pred = clf_.predict(X_test)
     return Result(
@@ -76,12 +78,13 @@ def run_coirls(data: Data, cv_index: int, single: bool) -> Result:
         accuracy_score(y_train, y_train_pred),
         log_loss(y_test, y_test_pred),
         log_loss(y_train, y_train_pred),
+        clf_.get_params(),
         clf_.coef_.numpy()
     )
 
 
-def run_ridgels(data: Data, cv_index: int, single: bool) -> Result:
-    clf_ = CoIRLS()
+def run_ridgels(data: Data, cv_index: int, single: bool, hyp: HyperCfg) -> Result:
+    clf_ = CoIRLS(alpha=hyp.alpha, lambda_=hyp.lambda_)
     z_train = data.source | (data.cv != cv_index)
     X_test = data.X[~z_train, :]
     X_train = data.X[z_train, :]
@@ -100,5 +103,6 @@ def run_ridgels(data: Data, cv_index: int, single: bool) -> Result:
         accuracy_score(y_train, y_train_pred),
         log_loss(y_test, y_test_pred),
         log_loss(y_train, y_train_pred),
+        clf_.get_params(),
         clf_.coef_.numpy()
     )
