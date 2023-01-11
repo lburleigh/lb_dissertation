@@ -13,8 +13,8 @@ targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
 subjects = subj_df["participant_id"]
 
-alpha_set=[]
-lambda_set=[]
+alpha_set=[1, 2]
+lambda_set=[.001, .01, 1, 10, 50, 100, 500, 1000]
 
 d = load_npz_as_df(subjects, roi, phase, experiment)
 
@@ -41,9 +41,9 @@ for var in ["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"]:
 d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], axis = 1)
 
 cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
-HyperCfgs =[(HyperCfg(alpha=x, lambda_=y)) for x,y in product(alpha_set, lambda_set)]
+HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, lambda_set)]
 r = []
-for hyp in HyperCfgs:
+for hyp in flat_HyperCfgs:
     r.append(cv_ridgels(d, True, cfg, hyp))
     r[0].loc[:, "model_type"] = "ridgels"
     r[0].loc[:, "cfg"] = [cfg]*r[0].shape[0]
