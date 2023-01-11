@@ -43,7 +43,7 @@ d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], a
 cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
 HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, lambda_set)]
 r = []
-for hyp in flat_HyperCfgs:
+for hyp in HyperCfgs:
     r.append(cv_ridgels(d, True, cfg, hyp))
     r[0].loc[:, "model_type"] = "ridgels"
     r[0].loc[:, "cfg"] = [cfg]*r[0].shape[0]
