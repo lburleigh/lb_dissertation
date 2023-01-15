@@ -2,6 +2,8 @@ import pandas as pd
 import os.path
 from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
+from itertools import product
+
 
 
 phase = "B"
@@ -12,8 +14,8 @@ targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
 subjects = subj_df["participant_id"]
 
-alpha_set=[1, 2]
-lambda_set=[.001, .01, 1, 10, 50, 100, 500, 1000]
+alpha_set=[5000, 10000, 30000, 70000, 100000, 250000, 500000]
+lambda_set=[.001, .01, 1]
 
 d = load_npz_as_df(subjects, roi, phase, experiment)
 
@@ -40,24 +42,23 @@ for var in ["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"]:
 d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], axis = 1)
 
 cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
-HyperCfgs =[[(HyperCfg(alpha=x, lambda_=y)) for y in lambda_set] for x in alpha_set]
-flat_HyperCfgs = [item for sublist in HyperCfgs for item in sublist]
+HyperCfgs = [HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, lambda_set)]
 r = []
-for hyp in flat_HyperCfgs:
+for hyp in HyperCfgs:
     r.append(cv_ridgels(d, True, cfg, hyp))
-    r[0].loc[:, "model_type"] = "ridgels"
-    r[0].loc[:, "cfg"] = [cfg]*r[0].shape[0]
-    r[0].loc[:, "hyp"] = [hyp]*r[0].shape[0]
+    r[-1].loc[:, "model_type"] = "ridgels"
+    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
     r.append(cv_coirls(d, False, cfg, hyp))
-    r[1].loc[:, "model_type"] = "coirls"
-    r[1].loc[:, "cfg"] = [cfg]*r[1].shape[0]
-    r[1].loc[:, "hyp"] = [hyp]*r[1].shape[0]
+    r[-1].loc[:, "model_type"] = "coirls"
+    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
     r.append(cv_ridgels(d, False, cfg, hyp))
-    r[2].loc[:, "model_type"] = "ridgels"
-    r[2].loc[:, "cfg"] = [cfg]*r[2].shape[0]
-    r[2].loc[:, "hyp"] = [hyp]*r[2].shape[0]
+    r[-1].loc[:, "model_type"] = "ridgels"
+    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
 R = pd.concat(r)
 R.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
