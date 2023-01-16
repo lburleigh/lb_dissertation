@@ -61,8 +61,9 @@ def pull_from_dataframe(d: pd.DataFrame, target_subject_index: int, cfg: DataCfg
 def run_coirls(data: Data, cv_index: int, single: bool, hyp: HyperCfg) -> Result:
     clf_ = CoIRLS(alpha=hyp.alpha, lambda_=hyp.lambda_)
     z_train = data.source | (data.cv != cv_index)
-    X_test = data.X[~z_train, :]
-    X_train = data.X[z_train, :]
+    X = (data.X - data.X[z_train, :].mean(axis=0)) / data.X[z_train, :].std(axis=0)
+    X_test = X[~z_train, :]
+    X_train =X[z_train, :]
     y_test = data.y[~z_train]
     y_train = data.y[z_train]
     X = np.concatenate([X_train, X_test], axis=0)
@@ -86,8 +87,9 @@ def run_coirls(data: Data, cv_index: int, single: bool, hyp: HyperCfg) -> Result
 def run_ridgels(data: Data, cv_index: int, single: bool, hyp: HyperCfg) -> Result:
     clf_ = CoIRLS(alpha=hyp.alpha, lambda_=hyp.lambda_)
     z_train = data.source | (data.cv != cv_index)
-    X_test = data.X[~z_train, :]
-    X_train = data.X[z_train, :]
+    X = (data.X - data.X[z_train, :].mean(axis=0)) / data.X[z_train, :].std(axis=0)
+    X_test = X[~z_train, :]
+    X_train =X[z_train, :]
     y_test = data.y[~z_train]
     y_train = data.y[z_train]
     C = np.ones([len(y_train), 1])
