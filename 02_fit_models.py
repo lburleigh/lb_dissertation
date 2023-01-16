@@ -45,19 +45,19 @@ HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, lambda_se
 r = []
 for hyp in HyperCfgs:
     r.append(cv_ridgels(d, True, cfg, hyp))
-    r[0].loc[:, "model_type"] = "ridgels"
-    r[0].loc[:, "cfg"] = [cfg]*r[0].shape[0]
-    r[0].loc[:, "hyp"] = [hyp]*r[0].shape[0]
+    r[-1].loc[:, "model_type"] = "ridgels"
+    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
     r.append(cv_coirls(d, False, cfg, hyp))
-    r[1].loc[:, "model_type"] = "coirls"
-    r[1].loc[:, "cfg"] = [cfg]*r[1].shape[0]
-    r[1].loc[:, "hyp"] = [hyp]*r[1].shape[0]
+    r[-1].loc[:, "model_type"] = "coirls"
+    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
     r.append(cv_ridgels(d, False, cfg, hyp))
-    r[2].loc[:, "model_type"] = "ridgels"
-    r[2].loc[:, "cfg"] = [cfg]*r[2].shape[0]
-    r[2].loc[:, "hyp"] = [hyp]*r[2].shape[0]
+    r[-1].loc[:, "model_type"] = "ridgels"
+    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
 R = pd.concat(r)
 R.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
