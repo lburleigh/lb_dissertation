@@ -3,6 +3,8 @@ import os.path
 from itertools import product
 from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
+from itertools import product
+
 
 
 phase = "B"
@@ -13,8 +15,8 @@ targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
 subjects = subj_df["participant_id"]
 
-alpha_set=[1, 2]
-lambda_set=[.001, .01, 1, 10, 50, 100, 500, 1000]
+alpha_set=[5000, 10000, 30000, 70000, 100000, 250000, 500000]
+lambda_set=[.001, .01, 1]
 
 d = load_npz_as_df(subjects, roi, phase, experiment)
 
