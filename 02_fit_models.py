@@ -48,11 +48,11 @@ d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], a
 cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
 HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, lambda_set)]
 r = []
-for hyp in HyperCfgs:
-    r.append(cv_coirls(d, False, cfg, hyp))
-    r[-1].loc[:, "model_type"] = "coirls"
-    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
-    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
+#for hyp in HyperCfgs:
+#    r.append(cv_coirls(d, False, cfg, hyp))
+#    r[-1].loc[:, "model_type"] = "coirls"
+#    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+#    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
 
 HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, [0])]
