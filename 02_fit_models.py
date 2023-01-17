@@ -6,7 +6,6 @@ from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
 from itertools import product
 
 
-
 phase = "B"
 experiment = "task"
 roi = "whole_bin"
