@@ -40,7 +40,7 @@ for var in ["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"]:
     )
 
 z = allzeros_across_all_runs(d)
-d.voxels_subset = [x[:,z] for x in d.voxels_subset]
+d.voxels_subset = [x[:,~z] for x in d.voxels_subset]
 
 d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], axis = 1)
 

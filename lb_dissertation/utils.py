@@ -81,5 +81,5 @@ def allzeros_across_all_runs(d: pd.DataFrame):
     for i in runs:
         z.extend([np.all(y[x.flatten() == i, :] == 0, axis=0) for x,y in zip(d.runs_subset, d.voxels_subset)])
     
-    return ~np.any(np.array(z), axis=0).flatten()
+    return np.any(np.array(z), axis=0).flatten()
         
