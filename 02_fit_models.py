@@ -1,7 +1,7 @@
 import pandas as pd
 import os.path
 from itertools import product
-from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set
+from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set, allzeros_across_all_runs 
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
 from itertools import product
 
@@ -39,16 +39,19 @@ for var in ["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"]:
         axis = 1
     )
 
+z = allzeros_across_all_runs(d)
+d.voxels_subset = [x[:,z] for x in d.voxels_subset]
+
 d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], axis = 1)
 
 cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
 HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, lambda_set)]
 r = []
-for hyp in HyperCfgs:
-    r.append(cv_coirls(d, False, cfg, hyp))
-    r[-1].loc[:, "model_type"] = "coirls"
-    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
-    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
+#for hyp in HyperCfgs:
+#    r.append(cv_coirls(d, False, cfg, hyp))
+#    r[-1].loc[:, "model_type"] = "coirls"
+#    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+#    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
 
 HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, [0])]
