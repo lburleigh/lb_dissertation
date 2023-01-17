@@ -52,7 +52,7 @@ for hyp in HyperCfgs:
     r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
 
-HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, 0)]
+HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, [0])]
 for hyp in HyperCfgs:
     r.append(cv_ridgels(d, True, cfg, hyp))
     r[-1].loc[:, "model_type"] = "ridgels"
