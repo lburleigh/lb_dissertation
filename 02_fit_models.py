@@ -1,7 +1,7 @@
 import pandas as pd
 import os.path
 from itertools import product
-from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set
+from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set, allzeros_across_all_runs 
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
 from itertools import product
 
@@ -14,8 +14,9 @@ targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
 subjects = subj_df["participant_id"]
 
-alpha_set=[.001, .01, 1, 10, 100, 500, 1000]
-lambda_set=[.001, .01, 1, 10, 100, 500, 1000]
+alpha_set=[.001]
+# , .01, 1, 10, 100, 500, 1000
+lambda_set=[.001]
 
 d = load_npz_as_df(subjects, roi, phase, experiment)
 
@@ -38,6 +39,9 @@ for var in ["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"]:
         set = ("image", "view"),
         axis = 1
     )
+
+z = allzeros_across_all_runs(d)
+d.voxels_subset = [x[:,~z] for x in d.voxels_subset]
 
 d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], axis = 1)
 
