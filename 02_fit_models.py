@@ -14,9 +14,9 @@ targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
 subjects = subj_df["participant_id"]
 
-alpha_set=[.001]
+alpha_set=[.001, .01, 1, 10, 100, 500, 1000]
 # , .01, 1, 10, 100, 500, 1000
-lambda_set=[.001]
+lambda_set=[.001, .01, 1, 10, 100, 500, 1000]
 
 d = load_npz_as_df(subjects, roi, phase, experiment)
 
@@ -48,31 +48,31 @@ d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], a
 cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
 HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, lambda_set)]
 r = []
+for hyp in HyperCfgs:
+    r.append(cv_coirls(d, False, cfg, hyp))
+    r[-1].loc[:, "model_type"] = "coirls"
+    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
+
+
+#HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, [0])]
 #for hyp in HyperCfgs:
-#    r.append(cv_coirls(d, False, cfg, hyp))
-#    r[-1].loc[:, "model_type"] = "coirls"
+#    r.append(cv_ridgels(d, True, cfg, hyp))
+#    r[-1].loc[:, "model_type"] = "ridgels"
+#    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
+#    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
+
+#    r.append(cv_ridgels(d, False, cfg, hyp))
+#    r[-1].loc[:, "model_type"] = "ridgels"
 #    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
 #    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
 
 
-HyperCfgs =[HyperCfg(alpha=x, lambda_=y) for x,y in product(alpha_set, [0])]
-for hyp in HyperCfgs:
-    r.append(cv_ridgels(d, True, cfg, hyp))
-    r[-1].loc[:, "model_type"] = "ridgels"
-    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
-    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
-
-    r.append(cv_ridgels(d, False, cfg, hyp))
-    r[-1].loc[:, "model_type"] = "ridgels"
-    r[-1].loc[:, "cfg"] = [cfg]*r[-1].shape[0]
-    r[-1].loc[:, "hyp"] = [hyp]*r[-1].shape[0]
-
-
 R = pd.concat(r)
 R.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
-    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_hyperconfigs.csv")
+    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_hyperconfigs-coir.csv")
 )
 R.to_pickle(
-    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_hyperconfigs.pkl")
+    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_hyperconfigs-coir.pkl")
 )
 print(R)
