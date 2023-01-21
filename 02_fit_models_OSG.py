@@ -11,7 +11,7 @@ parser.add_argument('--alpha', type=float, help='Hyperparameter to scale the rid
 parser.add_argument('--phase', type=str, default="B", help='Either "A" or "B"')
 parser.add_argument('--trial_types', type=str, default=["image", "view"], nargs='+', help='"image" or "view" or both')
 parser.add_argument('--model_type', type=str, default="coirls", help='"coirls" or "ridge"')
-parser.add_argument('--single', type=bool, default=False, help='Should the model be fit to a single subject?')
+parser.add_argument('--single', action='store_true', help='Should the model be fit to a single subject?')
 parser.add_argument('--job_id', type=int, help='Unique job index')
 args = parser.parse_args()
 
