@@ -15,13 +15,13 @@ Result = namedtuple("Result", ["target_subject", "cv_index", "exclude_fold", "si
 
 def cv_modelfit(fun: Callable[[Data, int], Result], d: pd.DataFrame, single: bool, cfg: DataCfg, hyp: Union[HyperCfg, List[List[HyperCfg]]]) -> pd.DataFrame:
     results = []
-    cv_set = np.unique(data.cv)
     for target_subject_index in trange(d.shape[0], desc="subject"):
         if single:
             data = pull_from_dataframe(d.iloc[[target_subject_index], :], 0, cfg)
         else:
             data = pull_from_dataframe(d, target_subject_index, cfg)
 
+        cv_set = np.unique(data.cv)
         for cv_index in tqdm(cv_set, desc="cv", leave=False):
             if isinstance(hyp, HyperCfg):
                 results.append(fun(data, cv_index, single, hyp))
