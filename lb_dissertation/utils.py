@@ -4,7 +4,7 @@ import os
 import itertools
 import pandas as pd
 import numpy as np
-from typing import Iterable
+from typing import Iterable, List
 
 def filter_matrix_by_set(row: pd.Series, var: str, by: str, set: Iterable[str]):
     """ Apply a filter to matrices in each row of a data frame
