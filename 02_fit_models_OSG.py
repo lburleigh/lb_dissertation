@@ -2,7 +2,7 @@ import pandas as pd
 import os.path
 import argparse
 import warnings
-from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set, allzeros_across_all_runs 
+from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set, allzeros_across_all_runs, flatten_list 
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
 
 parser = argparse.ArgumentParser(description='Fit models for LB dissertation')
@@ -13,7 +13,14 @@ parser.add_argument('--trial_types', type=str, default=["image", "view"], nargs=
 parser.add_argument('--model_type', type=str, default="coirls", help='"coirls" or "ridge"')
 parser.add_argument('--single', action='store_true', help='Should the model be fit to a single subject?')
 parser.add_argument('--job_id', type=int, help='Unique job index')
+parser.add_argument('--exclude_fold', type=int, default=-1, help='A fold to exclude while doing nested cross validation')
+parser.add_argument('--hypfile', type=str, help='A json txt file specifying hyperparameters for each subject and cv')
 args = parser.parse_args()
+
+
+if ((args.lambda_ is not None) or (args.alpha is not None)) and (args.hypfile is not None):
+    raise Exception("Hyperparameters cannot be specified on the command line and in a json simultaneously.")
+
 
 experiment = "task"
 roi = "whole_bin"
@@ -28,6 +35,7 @@ alpha = args.alpha
 model_type = args.model_type
 single = args.single
 job_id = args.job_id
+exclude_fold = args.exclude_fold
 
 if args.lambda_ is not None and model_type == "ridge":
     warnings.warn("A value for lambda was provided, but ridge will ignore it.", RuntimeWarning)
@@ -64,22 +72,40 @@ d.voxels_subset = [x[:,~z] for x in d.voxels_subset]
 
 d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], axis = 1)
 
-cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset")
-hyp = HyperCfg(alpha=alpha, lambda_=lambda_)
+cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset", exclude_fold=exclude_fold)
 
-if model_type == "coirls":
-    r = cv_coirls(d, False, cfg, hyp)
-elif model_type == "ridge":
-    r = cv_ridgels(d, single, cfg, hyp)
+if args.hypfile is None:
+    hyp = HyperCfg(alpha=alpha, lambda_=lambda_)
 
-r.loc[:, "model_type"] = model_type
-r.loc[:, "cfg"] = [cfg]*r.shape[0]
-r.loc[:, "hyp"] = [hyp]*r.shape[0]
+    if model_type == "coirls":
+        r = cv_coirls(d, False, cfg, hyp)
+    elif model_type == "ridge":
+        r = cv_ridgels(d, single, cfg, hyp)
+
+    r.loc[:, "model_type"] = model_type
+    r.loc[:, "cfg"] = [cfg]*r.shape[0]
+    r.loc[:, "hyp"] = [hyp]*r.shape[0]
+
+else:
+    with open(args.hypfile, 'r') as f:
+        hyplist = json.load(f)
+
+    if isinstance(hyplist, dict):
+        hyplist = [hyplist[k] for k in d.subject]
+
+    if model_type == "coirls":
+        r = cv_coirls(d, False, cfg, hyplist)
+    elif model_type == "ridge":
+        r = cv_ridgels(d, single, cfg, hyplist)
+
+    r.loc[:, "model_type"] = model_type
+    r.loc[:, "cfg"] = [cfg]*r.shape[0]
+    r.loc[:, "hyp"] = flatten_list(hyplist)
 
 
 r.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
-    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_job-{job_id:d}.csv")
+    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.csv")
 )
 r.to_pickle(
-    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_job-{job_id:d}.pkl")
+    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.pkl")
 )
