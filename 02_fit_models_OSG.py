@@ -9,6 +9,7 @@ from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set, allzeros
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
 
 parser = argparse.ArgumentParser(description='Fit models for LB dissertation')
+parser.add_argument('--roi', type=str, default="whole_bin", help='Which ROI?')
 parser.add_argument('--lambda', dest = "lambda_", type=float, help='Hyperparameter to scale the CoIR penalty')
 parser.add_argument('--alpha', type=float, help='Hyperparameter to scale the ridge penalty')
 parser.add_argument('--phase', type=str, default="B", help='Either "A" or "B"')
@@ -27,7 +28,7 @@ if ((args.lambda_ is not None) or (args.alpha is not None)) and (args.hypfile is
 
 
 experiment = "task"
-roi = "whole_bin"
+roi = args.roi
 target_levels = ("csp", "csm") 
 targets_label = "_".join(target_levels)
 subj_df = pd.read_csv("participants.tsv", sep='\t')
