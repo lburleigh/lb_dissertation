@@ -21,7 +21,7 @@ def cv_modelfit(fun: Callable[[Data, int], Result], d: pd.DataFrame, single: boo
         else:
             data = pull_from_dataframe(d, target_subject_index, cfg)
 
-        cv_set = np.unique(data.cv)
+        cv_set = np.unique(data.cv[~data.source])
         for cv_index in tqdm(cv_set, desc="cv", leave=False):
             if isinstance(hyp, HyperCfg):
                 results.append(fun(data, cv_index, single, hyp))
@@ -53,14 +53,15 @@ def pull_from_dataframe(d: pd.DataFrame, target_subject_index: int, cfg: DataCfg
     # Modify based on target subject (make sure target occupies bottom rows)
     target_subject = d.subject.iloc[target_subject_index]
     min_cv = np.min(cv)
-    z_source = np.array([False if i == target_subject_index else True for i in sub_index])
-    X = np.concatenate([X[z_source, :], X[~z_source & cv != exclude_fold, :]], axis=0)
-    y = np.concatenate([y[z_source], y[~z_source & cv != exclude_fold]], axis=0)
-    C = np.concatenate([C[z_source, :], C[~z_source & cv != exclude_fold, :]], axis=0)
-    cv = np.concatenate([cv[z_source], cv[~z_source & cv != exclude_fold]], axis=0) - min_cv # ensure zero based
-    z_source = np.concatenate([z_source[z_source], z_source[~z_source & cv != exclude_fold]])
+    z_source = sub_index != target_subject_index
+    z_exclude = ((cv == cfg.exclude_fold) & ~z_source)
 
-    return Data(X, y, C, cv, z_source, target_subject, exclude_fold - min_cv)
+    X = X[~z_exclude, :]
+    C = C[~z_exclude, :]
+    y = y[~z_exclude]
+    z_source = z_source[~z_exclude]
+    cv = cv[~z_exclude]
+    return Data(X, y, C, cv-min_cv, z_source, target_subject, cfg.exclude_fold-min_cv)
 
 
 def run_coirls(data: Data, cv_index: int, single: bool, hyp: HyperCfg) -> Result:
