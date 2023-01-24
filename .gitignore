@@ -9,3 +9,8 @@ phase-A_exp-task_roi-whole_bin.tar
 phase-B_exp-task_roi-whole_bin.tar
 hyp.json
 test.sh
+phase-A_exp-task_roi-V1-V3.tar
+phase-B_exp-task_roi-V1-V3.tar
+coirls_FALSE_final_hypcfg.json
+ridge_FALSE_final_hypcfg.json
+ridge_TRUE_final_hypcfg.json
