@@ -1,7 +1,8 @@
-import pandas as pd
-import os.path
 import argparse
+import json
+import os
 import warnings
+import pandas as pd
 from lb_dissertation.utils import load_npz_as_df, filter_matrix_by_set, allzeros_across_all_runs, flatten_list 
 from lb_dissertation.modeling import cv_coirls, cv_ridgels, DataCfg, HyperCfg
 
@@ -42,6 +43,9 @@ if args.lambda_ is not None and model_type == "ridge":
     warnings.warn("A value for lambda was provided, but ridge will ignore it.", RuntimeWarning)
     lambda_ = 0
 
+elif args.lambda_ is None:
+    lambda_ = 0
+
 else:
     lambda_ = args.lambda_
 
@@ -76,6 +80,7 @@ d = d.drop(["trial_types_tmp", "stimulus_cond_tmp", "runs_tmp", "voxels_tmp"], a
 cfg = DataCfg(target_field="stimulus_cond_subset", target_levels=target_levels, data_field="voxels_subset", runs_field="runs_subset", exclude_fold=exclude_fold)
 
 if args.hypfile is None:
+    outdir = "tune"
     hyp = HyperCfg(alpha=alpha, lambda_=lambda_)
 
     if model_type == "coirls":
@@ -88,11 +93,12 @@ if args.hypfile is None:
     r.loc[:, "hyp"] = [hyp]*r.shape[0]
 
 else:
+    outdir = "final"
     with open(args.hypfile, 'r') as f:
         hyplist = json.load(f)
 
     if isinstance(hyplist, dict):
-        hyplist = [hyplist[k] for k in d.subject]
+        hyplist = [[HyperCfg(alpha=k['alpha'], lambda_=k['lambda']) for k in hyplist[s]] for s in d.subject]
 
     if model_type == "coirls":
         r = cv_coirls(d, False, cfg, hyplist)
@@ -103,11 +109,18 @@ else:
     r.loc[:, "cfg"] = [cfg]*r.shape[0]
     r.loc[:, "hyp"] = flatten_list(hyplist)
 
-
+os.makedirs(os.path.join("results", outdir), exist_ok=True)
 r.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
-    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.csv")
+    os.path.join(
+        "results",
+        outdir,
+        f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.csv")
 )
+
 if args.pickle:
-r.to_pickle(
-    os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.pkl")
-)
+    r.to_pickle(
+        os.path.join(
+            "results",
+            outdir,
+            f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.pkl")
+    )
