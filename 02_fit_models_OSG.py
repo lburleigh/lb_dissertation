@@ -12,6 +12,7 @@ parser.add_argument('--phase', type=str, default="B", help='Either "A" or "B"')
 parser.add_argument('--trial_types', type=str, default=["image", "view"], nargs='+', help='"image" or "view" or both')
 parser.add_argument('--model_type', type=str, default="coirls", help='"coirls" or "ridge"')
 parser.add_argument('--single', action='store_true', help='Should the model be fit to a single subject?')
+parser.add_argument('--pickle', action='store_true', help='Should the full dataframe be pickled? This is the only way to access the model weights.')
 parser.add_argument('--job_id', type=int, help='Unique job index')
 parser.add_argument('--exclude_fold', type=int, default=-1, help='A fold to exclude while doing nested cross validation')
 parser.add_argument('--hypfile', type=str, help='A json txt file specifying hyperparameters for each subject and cv')
@@ -106,6 +107,7 @@ else:
 r.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
     os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.csv")
 )
+if args.pickle:
 r.to_pickle(
     os.path.join("results", f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.pkl")
 )
