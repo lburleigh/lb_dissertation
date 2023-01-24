@@ -7,3 +7,5 @@ results/
 .vscode/
 phase-A_exp-task_roi-whole_bin.tar
 phase-B_exp-task_roi-whole_bin.tar
+hyp.json
+test.sh
