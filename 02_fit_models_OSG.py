@@ -113,11 +113,12 @@ else:
     r.loc[:, "hyp"] = flatten_list(hyplist)
 
 os.makedirs(os.path.join("results", outdir), exist_ok=True)
+trial_types_str = '_'.join(trial_types)
 r.drop(["model_params", "model_weights", "cfg"], axis=1).to_csv(
     os.path.join(
         "results",
         outdir,
-        f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.csv")
+        f"phase-{phase:s}_exp-{experiment:s}_trials-{trial_types_str:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.csv")
 )
 
 if args.pickle:
@@ -125,5 +126,5 @@ if args.pickle:
         os.path.join(
             "results",
             outdir,
-            f"phase-{phase:s}_exp-{experiment:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.pkl")
+            f"phase-{phase:s}_exp-{experiment:s}_trials-{trial_types_str:s}_roi-{roi:s}_dv-{targets_label:s}_model-{model_type:s}_single-{single:d}_exclude-{exclude_fold:d}_job-{job_id:d}.pkl")
     )
