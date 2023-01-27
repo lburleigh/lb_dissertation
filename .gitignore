@@ -1,16 +1,29 @@
+# DIRECTORIES
+.vscode/
 data/
-venv/
-test-pykale/
-trash/
+hypercfg/
 lb_dissertation/__pycache__/
 results/
-.vscode/
-phase-A_exp-task_roi-whole_bin.tar
-phase-B_exp-task_roi-whole_bin.tar
-hyp.json
-test.sh
+test-pykale/
+trash/
+venv/
+
+# DATA FOR OSG
 phase-A_exp-task_roi-V1-V3.tar
+phase-A_exp-task_roi-amyg_bi_thr50.tar
+phase-A_exp-task_roi-whole_bin.tar
 phase-B_exp-task_roi-V1-V3.tar
+phase-B_exp-task_roi-amyg_bi_thr50.tar
+phase-B_exp-task_roi-whole_bin.tar
+
+# PARAMETER FILES
+hyp.json
 coirls_FALSE_final_hypcfg.json
 ridge_FALSE_final_hypcfg.json
 ridge_TRUE_final_hypcfg.json
+
+# RESULT FILES
+lb_dissertation_final_results-00.tar.gz
+
+# SCRATCH SCRIPTS
+test.sh
